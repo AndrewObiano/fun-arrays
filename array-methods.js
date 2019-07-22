@@ -1,4 +1,4 @@
-var dataset = require('./dataset.json');
+var dataset = require("./dataset.json");
 
 /*
   create an array with accounts from bankBalances that are
@@ -6,9 +6,20 @@ var dataset = require('./dataset.json');
   assign the resulting new array to `hundredThousandairs`
 */
 var hundredThousandairs = null;
+hundredThousandairs = dataset.bankBalances.filter(antiPoverty);
+
+function antiPoverty(element, index, array) {
+  return element.amount > 100000;
+}
 
 // set sumOfBankBalances to be the sum of all value held at `amount` for each bank object
 var sumOfBankBalances = null;
+let allBankAccounts = dataset.bankBalances;
+allBankAccounts.forEach(sum);
+
+function sum(element, index, array) {
+  return (sumOfBankBalances += parseInt(element.amount));
+}
 
 /*
   from each of the following states:
@@ -22,7 +33,20 @@ var sumOfBankBalances = null;
   and then sum it all up into one value saved to `sumOfInterests`
  */
 var sumOfInterests = null;
+allBankAccounts.reduce(gimmeYoInterest);
 
+function gimmeYoInterest(prev, curr) {
+  if (
+    curr.state === "WI" ||
+    curr.state === "IL" ||
+    curr.state === "OH" ||
+    curr.state === "WY" ||
+    curr.state === "GA" ||
+    curr.state === "DE"
+  ) {
+    return (sumOfInterests += Math.round(parseInt(curr.amount) * 0.189));
+  }
+}
 /*
   aggregate the sum of bankBalance amounts
   grouped by state
@@ -40,7 +64,19 @@ var sumOfInterests = null;
   )
  */
 var stateSums = null;
+stateSums = allBankAccounts.reduce(byState, {});
+// dont forget reduce(functionName, THIS VALUE IS THE INITIAL STATE OF acc)
 
+function byState(acc, curr) {
+  if (acc[curr.state]) {
+    // if the state is already in the object
+    acc[curr.state] += parseInt(curr.amount);
+  } else {
+    // if the state isn't already in the object
+    acc[curr.state] = parseInt(curr.amount);
+  }
+  return acc;
+}
 /*
   for all states *NOT* in the following states:
     Wisconsin
@@ -59,20 +95,52 @@ var stateSums = null;
   )
  */
 var sumOfHighInterests = null;
+sumOfHighInterests = Object.entries(stateSums).reduce(ballaInterest, 0);
 
+function ballaInterest(acc, curr) {
+  let interestValue = Math.round(parseInt(curr[1]) * 0.189);
+  if (!["WI", "IL", "OH", "WY", "GA", "DE"].includes(curr[0])) {
+    // check if current state is one of these
+    if (interestValue > 50000) {
+      acc += interestValue;
+    }
+  }
+  console.log(acc);
+  return acc;
+}
 /*
   set `lowerSumStates` to be an array of two letter state
   abbreviations of each state where the sum of amounts
   in the state is less than 1,000,000
  */
 var lowerSumStates = null;
+lowerSumStates = Object.entries(stateSums).reduce(toPoorStates, []);
 
+function toPoorStates(acc, curr) {
+  if (curr[1] < 1000000) {
+    acc.push(curr[0]);
+  }
+  return acc;
+}
 /*
   aggregate the sum of each state into one hash table
   `higherStateSums` should be the sum of all states with totals greater than 1,000,000
  */
 var higherStateSums = null;
+higherStateSums = Object.entries(stateSums)
+  .reduce(moreBalla, [])
+  .reduce(total, 0);
 
+function moreBalla(acc, curr) {
+  if (curr[1] > 1000000) {
+    acc.push(curr[1]); // push the total
+  }
+  return acc;
+}
+
+function total(acc, curr) {
+  return acc + curr;
+}
 /*
   from each of the following states:
     Wisconsin
@@ -89,7 +157,13 @@ var higherStateSums = null;
   otherwise set it to `false`
  */
 var areStatesInHigherStateSum = null;
+areStatesInHigherStateSum = Object.entries(stateSums).every(topDollaCheck);
 
+function topDollaCheck(element) {
+  if (!["WI", "IL", "OH", "WY", "GA", "DE"].includes(element[0])) {
+    return element[1] > 2550000;
+  }
+}
 /*
   Stretch Goal && Final Boss
 
@@ -105,16 +179,16 @@ var areStatesInHigherStateSum = null;
   otherwise set it to be `false`
  */
 var anyStatesInHigherStateSum = null;
-
+anyStatesInHigherStateSum = Object.entries(stateSums).some(topDollaCheck); // can run the same test but for "some" method
 
 module.exports = {
-  hundredThousandairs : hundredThousandairs,
-  sumOfBankBalances : sumOfBankBalances,
-  sumOfInterests : sumOfInterests,
-  sumOfHighInterests : sumOfHighInterests,
-  stateSums : stateSums,
-  lowerSumStates : lowerSumStates,
-  higherStateSums : higherStateSums,
-  areStatesInHigherStateSum : areStatesInHigherStateSum,
-  anyStatesInHigherStateSum : anyStatesInHigherStateSum
+  hundredThousandairs: hundredThousandairs,
+  sumOfBankBalances: sumOfBankBalances,
+  sumOfInterests: sumOfInterests,
+  sumOfHighInterests: sumOfHighInterests,
+  stateSums: stateSums,
+  lowerSumStates: lowerSumStates,
+  higherStateSums: higherStateSums,
+  areStatesInHigherStateSum: areStatesInHigherStateSum,
+  anyStatesInHigherStateSum: anyStatesInHigherStateSum
 };
